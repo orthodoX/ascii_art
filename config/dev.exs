@@ -1,13 +1,7 @@
 use Mix.Config
 
 # Configure your database
-config :ascii_art, AsciiArt.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "ascii_art_dev",
-  hostname: "localhost",
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+import_config "dev.secret.exs"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
