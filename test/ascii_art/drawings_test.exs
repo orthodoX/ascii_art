@@ -61,4 +61,49 @@ defmodule AsciiArt.DrawingsTest do
       assert %Ecto.Changeset{} = Drawings.change_canvas(canvas)
     end
   end
+
+  alias AsciiArt.Drawings.Rectangle
+
+  describe "draw_canvas/1" do
+    test "draws canvas with multiple drawings when no overlapping" do
+      rectangles = [
+        %Rectangle{coordinates: [3, 2], width: 5, height: 3, outline: "@", fill: "X"},
+        %Rectangle{coordinates: [10, 3], width: 14, height: 6, outline: "X", fill: "O"}
+      ]
+
+      assert Drawings.draw_canvas(rectangles) |> String.trim() ==
+               """
+
+                  @@@@@
+                  @XXX@  XXXXXXXXXXXXXX
+                  @@@@@  XOOOOOOOOOOOOX
+                         XOOOOOOOOOOOOX
+                         XOOOOOOOOOOOOX
+                         XOOOOOOOOOOOOX
+                         XXXXXXXXXXXXXX
+               """
+               |> String.trim()
+    end
+
+    test "draws canvas with multiple drawings when some overlapping" do
+      rectangles = [
+        %Rectangle{coordinates: [14, 0], width: 7, height: 6, outline: "none", fill: "."},
+        %Rectangle{coordinates: [0, 3], width: 8, height: 4, outline: "O", fill: "none"},
+        %Rectangle{coordinates: [5, 5], width: 5, height: 3, outline: "X", fill: "X"}
+      ]
+
+      assert Drawings.draw_canvas(rectangles) |> String.trim() ==
+               """
+                             .......
+                             .......
+                             .......
+               OOOOOOOO      .......
+               O      O      .......
+               O    XXXXX    .......
+               OOOOOXXXXX
+                    XXXXX
+               """
+               |> String.trim()
+    end
+  end
 end
