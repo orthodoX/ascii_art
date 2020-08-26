@@ -20,6 +20,12 @@ defmodule AsciiArtWeb.Router do
     live "/", PageLive, :index
   end
 
+  scope "/api/v1", AsciiArtWeb do
+    pipe_through :api
+
+    resources "/canvases", CanvasController, except: [:new, :edit]
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", AsciiArtWeb do
   #   pipe_through :api

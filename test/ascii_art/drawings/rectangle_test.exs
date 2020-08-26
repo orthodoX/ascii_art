@@ -14,6 +14,18 @@ defmodule AsciiArt.Drawings.RectangleTest do
       }
     end
 
+    test "build_from_attrs/1 returns a rectangle struct" do
+      attrs = %{
+        "coordinates" => [14, 0],
+        "fill" => "O",
+        "height" => 6,
+        "outline" => "X",
+        "width" => 7
+      }
+
+      assert Rectangle.build_from_attrs(attrs) == rectangle_fixture()
+    end
+
     test "start_row/1 returns start row" do
       rectangle = rectangle_fixture()
 
@@ -60,6 +72,16 @@ defmodule AsciiArt.Drawings.RectangleTest do
       rectangle = rectangle_fixture("@", "none")
 
       assert Rectangle.fill_char(rectangle) == " "
+    end
+
+    test "valid?/1 returns true only if rectangle has valid attrs" do
+      rectangle = %Rectangle{}
+
+      assert Rectangle.valid?(rectangle) == false
+
+      rectangle = rectangle_fixture()
+
+      assert Rectangle.valid?(rectangle) == true
     end
   end
 end

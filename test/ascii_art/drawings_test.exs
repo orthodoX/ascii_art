@@ -6,9 +6,31 @@ defmodule AsciiArt.DrawingsTest do
   describe "canvases" do
     alias AsciiArt.Drawings.Canvas
 
-    @valid_attrs %{drawing: "some drawing"}
-    @update_attrs %{drawing: "some updated drawing"}
-    @invalid_attrs %{drawing: nil}
+    @valid_attrs %{
+      "rectangles" => [
+        %{
+          "coordinates" => [0, 0],
+          "fill" => "O",
+          "height" => 3,
+          "outline" => "X",
+          "width" => 3
+        }
+      ]
+    }
+
+    @update_attrs %{
+      "rectangles" => [
+        %{
+          "coordinates" => [0, 1],
+          "fill" => "none",
+          "height" => 2,
+          "outline" => "+",
+          "width" => 2
+        }
+      ]
+    }
+
+    @invalid_attrs %{}
 
     def canvas_fixture(attrs \\ %{}) do
       {:ok, canvas} =
@@ -31,7 +53,7 @@ defmodule AsciiArt.DrawingsTest do
 
     test "create_canvas/1 with valid data creates a canvas" do
       assert {:ok, %Canvas{} = canvas} = Drawings.create_canvas(@valid_attrs)
-      assert canvas.drawing == "some drawing"
+      assert canvas.drawing == "XXX\nXOX\nXXX"
     end
 
     test "create_canvas/1 with invalid data returns error changeset" do
@@ -41,7 +63,7 @@ defmodule AsciiArt.DrawingsTest do
     test "update_canvas/2 with valid data updates the canvas" do
       canvas = canvas_fixture()
       assert {:ok, %Canvas{} = canvas} = Drawings.update_canvas(canvas, @update_attrs)
-      assert canvas.drawing == "some updated drawing"
+      assert canvas.drawing == "\n++\n++"
     end
 
     test "update_canvas/2 with invalid data returns error changeset" do

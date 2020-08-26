@@ -47,7 +47,7 @@ defmodule AsciiArt.Drawings do
 
   """
   def create_canvas(attrs \\ %{}) do
-    %Canvas{}
+    %Canvas{drawing: from_attrs(attrs)}
     |> Canvas.changeset(attrs)
     |> Repo.insert()
   end
@@ -66,9 +66,21 @@ defmodule AsciiArt.Drawings do
   """
   def update_canvas(%Canvas{} = canvas, attrs) do
     canvas
-    |> Canvas.changeset(attrs)
+    |> Canvas.changeset(%{drawing: from_attrs(attrs)})
     |> Repo.update()
   end
+
+  defp from_attrs(%{"rectangles" => attrs}) do
+    rectangles = attrs |> Enum.map(&Rectangle.build_from_attrs/1)
+
+    if Enum.find(rectangles, fn rect -> !Rectangle.valid?(rect) end) do
+      nil
+    else
+      draw_canvas(rectangles)
+    end
+  end
+
+  defp from_attrs(_), do: nil
 
   @doc """
   Deletes a canvas.

@@ -2,7 +2,25 @@ defmodule AsciiArt.Drawings.Rectangle do
   @moduledoc """
   A rectangle mapping module. Provides struct, and helper functions.
   """
-  defstruct [:coordinates, :width, :height, :outline, :fill]
+  defstruct coordinates: [], width: nil, height: nil, outline: "none", fill: "none"
+
+  @doc """
+  Builds a rectangle struct from the string map.
+
+  ## Examples
+
+      iex> build_from attrs(%{"coordinates" => [1, 7], ...})
+      %Rectangle{}
+
+  """
+  def build_from_attrs(attrs) do
+    attrs =
+      Map.new(attrs, fn {key, value} ->
+        {String.to_atom(key), value}
+      end)
+
+    struct(__MODULE__, attrs)
+  end
 
   @doc """
   Returns a start row passed in the coordinates.
@@ -74,6 +92,24 @@ defmodule AsciiArt.Drawings.Rectangle do
   """
   def fill_char(rectangle) do
     if rectangle.fill == "none", do: " ", else: rectangle.fill
+  end
+
+  @doc """
+  Returns true or false boolean if the rectangle is valid.
+
+  ## Examples
+
+      iex> valid?(%Rectangle{})
+      true
+
+  """
+  def valid?(rectangle) do
+    cond do
+      Enum.empty?(rectangle.coordinates) -> false
+      is_nil(rectangle.width) or is_nil(rectangle.height) -> false
+      rectangle.fill == "none" and rectangle.outline == "none" -> false
+      true -> true
+    end
   end
 
   defp start_coords(%{coordinates: [column, row]}), do: %{column: column, row: row}
