@@ -1,5 +1,5 @@
 defmodule AsciiArt.Drawings.RectangleTest do
-  use AsciiArt.DataCase
+  use AsciiArt.DataCase, async: true
 
   alias AsciiArt.Drawings.Rectangle
 

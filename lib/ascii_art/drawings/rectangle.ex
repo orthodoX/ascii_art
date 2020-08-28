@@ -14,10 +14,7 @@ defmodule AsciiArt.Drawings.Rectangle do
 
   """
   def build_from_attrs(attrs) do
-    attrs =
-      Map.new(attrs, fn {key, value} ->
-        {String.to_atom(key), value}
-      end)
+    attrs = attrs |> Map.new(fn {key, value} -> {String.to_atom(key), value} end)
 
     struct(__MODULE__, attrs)
   end
@@ -106,7 +103,7 @@ defmodule AsciiArt.Drawings.Rectangle do
   def valid?(rectangle) do
     cond do
       Enum.empty?(rectangle.coordinates) -> false
-      is_nil(rectangle.width) or is_nil(rectangle.height) -> false
+      Enum.any?([rectangle.width, rectangle.height], &is_nil/1) -> false
       rectangle.fill == "none" and rectangle.outline == "none" -> false
       true -> true
     end

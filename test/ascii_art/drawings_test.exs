@@ -1,5 +1,5 @@
 defmodule AsciiArt.DrawingsTest do
-  use AsciiArt.DataCase
+  use AsciiArt.DataCase, async: true
 
   alias AsciiArt.Drawings
 
@@ -124,6 +124,96 @@ defmodule AsciiArt.DrawingsTest do
                O    XXXXX    .......
                OOOOOXXXXX
                     XXXXX
+               """
+               |> String.trim()
+    end
+
+    test "draws canvas with multiple drawings and flood fill" do
+      rectangles = [
+        %Rectangle{coordinates: [14, 0], width: 7, height: 6, outline: "none", fill: "."},
+        %Rectangle{coordinates: [0, 3], width: 8, height: 4, outline: "O", fill: "none"},
+        %Rectangle{coordinates: [5, 5], width: 5, height: 3, outline: "X", fill: "X"}
+      ]
+
+      flood_attrs = %{"coordinates" => [2, 2], "fill" => "-"}
+
+      assert Drawings.draw_canvas(rectangles, flood_attrs) |> String.trim() ==
+               """
+               --------------.......
+               --------------.......
+               --------------.......
+               OOOOOOOO------.......
+               O      O------.......
+               O    XXXXX----.......
+               OOOOOXXXXX-----------
+                    XXXXX-----------
+               """
+               |> String.trim()
+    end
+
+    test "draws canvas with multiple drawings and flood fill #2" do
+      rectangles = [
+        %Rectangle{coordinates: [14, 0], width: 7, height: 6, outline: "none", fill: "."},
+        %Rectangle{coordinates: [0, 3], width: 8, height: 4, outline: "O", fill: "none"},
+        %Rectangle{coordinates: [5, 5], width: 5, height: 3, outline: "X", fill: "X"}
+      ]
+
+      flood_attrs = %{"coordinates" => [4, 4], "fill" => "-"}
+
+      assert Drawings.draw_canvas(rectangles, flood_attrs) |> String.trim() ==
+               """
+                             .......
+                             .......
+                             .......
+               OOOOOOOO      .......
+               O------O      .......
+               O----XXXXX    .......
+               OOOOOXXXXX
+                    XXXXX
+               """
+               |> String.trim()
+    end
+
+    test "draws canvas with multiple drawings and flood fill #3" do
+      rectangles = [
+        %Rectangle{coordinates: [14, 0], width: 7, height: 6, outline: "none", fill: "."},
+        %Rectangle{coordinates: [0, 3], width: 8, height: 4, outline: "O", fill: "none"},
+        %Rectangle{coordinates: [5, 5], width: 5, height: 3, outline: "X", fill: "X"}
+      ]
+
+      flood_attrs = %{"coordinates" => [3, 7], "fill" => "-"}
+
+      assert Drawings.draw_canvas(rectangles, flood_attrs) |> String.trim() ==
+               """
+                             .......
+                             .......
+                             .......
+               OOOOOOOO      .......
+               O      O      .......
+               O    XXXXX    .......
+               OOOOOXXXXX
+               -----XXXXX
+               """
+               |> String.trim()
+    end
+
+    test "draws canvas with multiple drawings and flood fill #4" do
+      rectangles = [
+        %Rectangle{coordinates: [14, 0], width: 7, height: 6, outline: "none", fill: "."},
+        %Rectangle{coordinates: [1, 1], width: 8, height: 4, outline: "O", fill: "none"},
+        %Rectangle{coordinates: [6, 3], width: 5, height: 3, outline: "X", fill: "X"}
+      ]
+
+      flood_attrs = %{"coordinates" => [1, 1], "fill" => "-"}
+
+      assert Drawings.draw_canvas(rectangles, flood_attrs) |> String.trim() ==
+               """
+               --------------.......
+               -OOOOOOOO-----.......
+               -O      O-----.......
+               -O    XXXXX---.......
+               -OOOOOXXXXX---.......
+               ------XXXXX---.......
                """
                |> String.trim()
     end

@@ -5,7 +5,7 @@ defmodule AsciiArt.Drawings do
   import Ecto.Query, warn: false
 
   alias AsciiArt.Drawings.{Canvas, Rectangle}
-  alias AsciiArt.Repo
+  alias AsciiArt.{Matrix, Repo}
 
   @doc """
   Returns the list of canvases.
@@ -70,17 +70,23 @@ defmodule AsciiArt.Drawings do
     |> Repo.update()
   end
 
-  defp from_attrs(%{"rectangles" => attrs}) do
-    rectangles = attrs |> Enum.map(&Rectangle.build_from_attrs/1)
+  defp from_attrs(%{"rectangles" => attrs, "flood_fill" => flood_attrs}) do
+    from_attrs(attrs, flood_attrs)
+  end
+
+  defp from_attrs(%{"rectangles" => attrs}), do: from_attrs(attrs, %{})
+
+  defp from_attrs(_), do: nil
+
+  defp from_attrs(rectangles_attrs, flood_attrs) do
+    rectangles = rectangles_attrs |> Enum.map(&Rectangle.build_from_attrs/1)
 
     if Enum.find(rectangles, fn rect -> !Rectangle.valid?(rect) end) do
       nil
     else
-      draw_canvas(rectangles)
+      draw_canvas(rectangles, flood_attrs)
     end
   end
-
-  defp from_attrs(_), do: nil
 
   @doc """
   Deletes a canvas.
@@ -116,14 +122,24 @@ defmodule AsciiArt.Drawings do
       "xxxx oooo ..."
 
   """
-  def draw_canvas(rectangles, flood_params \\ %{}) do
-    generate_canvas(rectangles, flood_params) |> Enum.join("\n")
+  def draw_canvas(rectangles, flood_attrs \\ %{}) do
+    generate_canvas(rectangles, flood_attrs) |> Enum.join("\n")
   end
 
-  defp generate_canvas(rectangles, flood_params) when flood_params == %{} do
-    generate_drawings(rectangles)
-    |> Enum.scan(&merge_drawings(&1, &2))
-    |> List.last()
+  defp generate_canvas(rectangles, flood_attrs) when flood_attrs == %{} do
+    generate_drawings(rectangles) |> Enum.reduce(&merge_drawings(&1, &2))
+  end
+
+  defp generate_canvas(rectangles, flood_attrs) do
+    generate_canvas(rectangles, %{}) |> flood_fill(flood_attrs)
+  end
+
+  defp flood_fill(canvas, flood_attrs) do
+    canvas
+    |> equalize_rows()
+    |> Matrix.from_list()
+    |> fill_matrix(flood_attrs)
+    |> Matrix.to_list()
   end
 
   defp generate_drawings(rectangles), do: rectangles |> Enum.map(&add_drawing/1)
@@ -155,33 +171,32 @@ defmodule AsciiArt.Drawings do
   end
 
   defp merge_drawings(rect1, rect2) do
-    total_rows = ([Enum.count(rect1), Enum.count(rect2)] |> Enum.max()) - 1
-
-    total_cols =
-      [
-        rect1 |> Enum.max_by(&Enum.count/1) |> Enum.count(),
-        rect2 |> Enum.max_by(&Enum.count/1) |> Enum.count()
-      ]
-      |> Enum.max()
+    {total_rows, total_cols} = find_max_sizes(rect1, rect2)
 
     for row <- 0..total_rows, into: [] do
       rect1_row = rect1 |> Enum.at(row)
       rect2_row = rect2 |> Enum.at(row)
 
       cond do
-        is_nil(rect1_row) ->
-          rect2_row
-
-        is_nil(rect2_row) ->
-          rect1_row
-
-        Enum.empty?(rect1_row) or Enum.empty?(rect2_row) ->
-          merge_empty_row(rect1_row, rect2_row)
-
-        true ->
-          merge_rows(rect1_row, rect2_row, total_cols)
+        is_nil(rect1_row) -> rect2_row
+        is_nil(rect2_row) -> rect1_row
+        Enum.any?([rect1_row, rect2_row], &Enum.empty?/1) -> merge_empty_row(rect1_row, rect2_row)
+        true -> merge_rows(rect1_row, rect2_row, total_cols)
       end
     end
+  end
+
+  defp find_max_sizes(list1, list2) do
+    total_rows = ([Enum.count(list1), Enum.count(list2)] |> Enum.max()) - 1
+
+    total_cols =
+      ([
+         list1 |> Enum.max_by(&Enum.count/1) |> Enum.count(),
+         list2 |> Enum.max_by(&Enum.count/1) |> Enum.count()
+       ]
+       |> Enum.max()) - 1
+
+    {total_rows, total_cols}
   end
 
   defp merge_empty_row(row1, row2) do
@@ -208,4 +223,52 @@ defmodule AsciiArt.Drawings do
 
   defp merge_columns(col1, col2) when col1 == " ", do: col2
   defp merge_columns(col1, _col2), do: col1
+
+  defp fill_matrix(matrix, %{"coordinates" => [start_column, start_row], "fill" => fill}) do
+    matrix |> fill_fields(start_row, start_column, fill)
+  end
+
+  defp fill_fields(matrix, neighbours, _) when neighbours == [], do: matrix
+
+  defp fill_fields(neighbours, matrix, fill) when is_list(neighbours) and is_map(matrix) do
+    neighbours
+    |> Enum.reduce(matrix, fn [row, col], acc -> acc |> put_in([row, col], fill) end)
+    |> fill_fields(neighbours, fill)
+  end
+
+  defp fill_fields(matrix, neighbours, fill) do
+    for [row, col] <- neighbours do
+      find_neighbours(matrix, row, col)
+    end
+    |> Enum.concat()
+    |> fill_fields(matrix, fill)
+  end
+
+  defp fill_fields(matrix, row, col, fill) do
+    find_neighbours(matrix, row, col) |> fill_fields(matrix, fill)
+  end
+
+  defp find_neighbours(matrix, row, col) do
+    potential_neighbours = [[row - 1, col], [row + 1, col], [row, col - 1], [row, col + 1]]
+    {height, width} = Canvas.size()
+
+    for [r, c] <- potential_neighbours, into: [] do
+      if r <= height and c <= width and Enum.member?([" ", ""], matrix[r][c]), do: [r, c]
+    end
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp equalize_rows(list) do
+    total_rows = Enum.count(list) - 1
+    max_cols = list |> Enum.max_by(&Enum.count/1) |> Enum.count()
+
+    Enum.reduce(0..total_rows, list, fn index, list ->
+      row = list |> Enum.at(index)
+      cols = row |> Enum.count()
+      missing_cols = max_cols - cols
+      fillers = for _n when missing_cols > 0 <- 0..missing_cols, into: [], do: ""
+
+      list |> List.replace_at(index, row ++ fillers)
+    end)
+  end
 end

@@ -3,11 +3,16 @@ defmodule AsciiArt.Drawings.Canvas do
 
   import Ecto.Changeset
 
+  @size {20, 20}
+
   schema "canvases" do
     field :drawing, :string
 
     timestamps()
   end
+
+  @doc false
+  def size, do: @size
 
   @doc false
   def changeset(canvas, attrs) do

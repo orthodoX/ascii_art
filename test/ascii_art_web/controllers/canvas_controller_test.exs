@@ -1,5 +1,5 @@
 defmodule AsciiArtWeb.CanvasControllerTest do
-  use AsciiArtWeb.ConnCase
+  use AsciiArtWeb.ConnCase, async: true
 
   alias AsciiArt.Drawings
   alias AsciiArt.Drawings.Canvas
@@ -21,11 +21,12 @@ defmodule AsciiArtWeb.CanvasControllerTest do
       %{
         "coordinates" => [0, 1],
         "fill" => "none",
-        "height" => 2,
+        "height" => 4,
         "outline" => "+",
-        "width" => 2
+        "width" => 4
       }
-    ]
+    ],
+    "flood_fill" => %{"coordinates" => [2, 2], "fill" => "&"}
   }
 
   @invalid_attrs %{
@@ -86,7 +87,7 @@ defmodule AsciiArtWeb.CanvasControllerTest do
 
       assert %{
                "id" => id,
-               "drawing" => "\n++\n++"
+               "drawing" => "\n++++\n+&&+\n+&&+\n++++"
              } = json_response(conn, 200)["data"]
     end
 
