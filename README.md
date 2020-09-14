@@ -1,4 +1,4 @@
-# Ascii canvas coding challenge
+# ASCII canvas coding challenge
 
 ```
    _____                   .__ .__     _____             __
@@ -9,11 +9,14 @@
         \/      \/      \/                  \/
 ```
 
-This app was built with the latest `Elixir 1.10.4` (compiled with Erlang/OTP 23) `Phoenix 1.5.4`
-and `PostgreSQL 12.2`
+## Description
+
+The point of this coding challenge is to demonstrate the algoritm for drawing ASCII rectangles on a "canvas", alongside the flood fill algorithm.
+There are several API endpoints exposed, where you can pass the desired rectangles coordinates, their properties and flood fill param. The drawing will then be created and stored into a db. API params are described further below. Some of the examples of these drawings can be seen in [AsciiArt.DrawingsTest](https://github.com/orthodoX/ascii_art/blob/master/test/ascii_art/drawings_test.exs) module.
 
 ## Setup
 
+- This app was built with the `Elixir 1.10.4` (compiled with Erlang/OTP 23) `Phoenix 1.5.4` and `PostgreSQL 12.2`
 - Install dependencies with `mix deps.get`
 - Run `cp config/dev.secret.exs.example config/dev.secret.exs && cp config/test.secret.exs.example config/test.secret.exs`
   and update the values in case you are not using the default ones.
@@ -73,22 +76,3 @@ The params you can pass to create and update endpoints should be in the followin
   }
 }
 ```
-
-## Known concerns
-
-- **The algorithms** - The alogrithms run really fast and cover given test fixtures,
-  even some additional ones I added, though I'm sure they can be optimised even further.
-  Please take into consideration the fact that I'm not yet an Elixir Guru and that
-  I'm still practicing to _think functional_.
-- **App has some assets** - When I was starting the task, I wasn't sure if I'll have time to build a
-  little sweet LiveView client as a bonus feature. That's why I generated an app with `--live` argument just in case.
-  But if I knew I wouldn't, I'd just generate an pure API app without assets.
-- **Validations** - You'll notice I didn't go in full details with the validations, mainly because I thought
-  that they are not so crucial for this challenge. Therefore, there is one validation rule that will check all
-  the required params and return an error message in case any of them is invalid.
-
-## Conclusion
-
-I really enjoyed working on this challenge, because it was really that, challenging! Especially in a
-functional language like Elixir. I'd be honored to have a chance to discuss it with you guys and I hope you'll enjoy
-reading my code as much as I enjoyed writing it!
